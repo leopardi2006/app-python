@@ -10,7 +10,7 @@ Initiate the Neo4j Driver
 # tag::initDriver[]
 def init_driver(uri, username, password):
     # TODO: Create an instance of the driver here
-    current_app.driver = GraphDatabase.driver('bolt://3.216.79.70:7687', auth=('neo4j', 'result-light-hotel'))
+    current_app.driver = GraphDatabase.driver('bolt://44.197.175.153:7687', auth=('neo4j', 'liberty-sixths-lender'))
 
     # Verify Connectivity
     current_app.driver.verify_connectivity()

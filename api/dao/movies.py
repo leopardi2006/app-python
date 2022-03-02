@@ -23,10 +23,16 @@ class MovieDAO:
     def all(self, sort, order, limit=6, skip=0, user_id=None):
         # TODO: Get list from movies from Neo4j
         def get_movies(tx, sort, order, limit, skip, user_id):
+            
+            favorites = self.get_user_favorites(tx, user_id)
+            
             cypher = """
                 MATCH (m:Movie)
                 WHERE exists(m.`{0}`)
-                RETURN m {{ .* }} AS movie
+                RETURN m {{
+                    .*,
+                    favorite: m.tmdbId IN $favorites
+                }} AS movie
                 ORDER BY m.`{0}` {1}
                 SKIP $skip
                 LIMIT $limit
@@ -149,5 +155,13 @@ class MovieDAO:
     """
     # tag::getUserFavorites[]
     def get_user_favorites(self, tx, user_id):
-        return []
+        if user_id == None:
+            return []
+
+        result = tx.run("""
+            MATCH (u:User {userId: $userId})-[:HAS_FAVORITE]->(m)
+            RETURN m.tmdbId AS id
+        """, userId=user_id)
+
+        return [ record.get("id") for record in result ]
     # end::getUserFavorites[]

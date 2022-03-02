@@ -37,17 +37,33 @@ class AuthDAO:
                 {"email": "An account already exists with this email"}
             )
 
-        # Build a set of claims
-        payload = {
-            "userId": "00000000-0000-0000-0000-000000000000",
-            "email": email,
-            "name": name,
-        }
+        def create_user(tx, email, encrypted, name):
+            return tx.run(""" // (1)
+                CREATE (u:User {
+                    userId: randomUuid(),
+                    email: $email,
+                    password: $encrypted,
+                    name: $name
+                })
+                RETURN u
+            """,
+            email=email, encrypted=encrypted, name=name # (2)
+            ).single() # (3)
 
-        # Generate Token
-        payload["token"] = self._generate_token(payload)
+        with self.driver.session() as session:
+            result = session.write_transaction(create_user, email, encrypted, name)
 
-        return payload
+            user = result['u']
+
+            payload = {
+                "userId": user["userId"],
+                "email":  user["email"],
+                "name":  user["name"],
+            }
+
+            payload["token"] = self._generate_token(payload)
+
+            return payload
     # end::register[]
 
     """
